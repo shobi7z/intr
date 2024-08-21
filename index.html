@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تتبع الشحنة</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e9ecef;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #495057;
+        }
+        .container {
+            background: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            width: 100%;
+            max-width: 600px;
+            box-sizing: border-box;
+            border: 1px solid #ddd;
+        }
+        h1 {
+            text-align: center;
+            color: #007bff;
+            margin-bottom: 20px;
+            font-size: 2em;
+            font-weight: 700;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        label {
+            font-weight: bold;
+            color: #333;
+            font-size: 1.1em;
+        }
+        input[type="text"] {
+            padding: 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 1em;
+            box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.075);
+        }
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            background-color: #007bff;
+            color: #ffffff;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:active {
+            transform: scale(0.98);
+        }
+.status {
+    margin-top: 50px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background: linear-gradient(to right, #f8f9fa, #e9ecef);
+    text-align: center;
+    font-size: 1.2em; /* زيادة حجم الخط */
+}
+
+        .status h3 {
+            color: #007bff;
+            margin-top: 0;
+            font-size: 3em;
+            font-weight: 600;
+        }
+        .status p {
+            margin: 10px 0;
+            font-size: 1.1em;
+        }
+        .status p strong {
+            color: #333;
+        }
+        .status .info {
+            background: #ffffff;
+            border-left: 5px solid #007bff;
+            border-right: 5px solid #007bff;
+
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>تتبع الشحنة</h1>
+        <form onsubmit="event.preventDefault(); trackShipment();">
+            <label for="shipmentNumber">رقم الشحنة:</label>
+            <input type="text" id="shipmentNumber" placeholder="أدخل رقم الشحنة" required>
+            <button type="submit">تتبع</button>
+        </form>
+        <div id="status" class="status"></div>
+    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getDatabase, ref, get } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA-UOXh6rNrNEFmbYO2VD4Z3lX-k_087LY",
+            authDomain: "vndrt-e4be6.firebaseapp.com",
+            databaseURL: "https://vndrt-e4be6-default-rtdb.firebaseio.com",
+            projectId: "vndrt-e4be6",
+            storageBucket: "vndrt-e4be6.appspot.com",
+            messagingSenderId: "272358874564",
+            appId: "1:272358874564:web:05061e5303fc02f78cd891",
+            measurementId: "G-K8R33G55XR"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        window.trackShipment = async function() {
+            const shipmentNumber = document.getElementById('shipmentNumber').value;
+            const status = document.getElementById('status');
+
+            if (shipmentNumber) {
+                const shipmentRef = ref(database, 'shipments/' + shipmentNumber);
+                try {
+                    const snapshot = await get(shipmentRef);
+                    if (snapshot.exists()) {
+                        const shipmentData = snapshot.val();
+                        status.innerHTML = `
+                            <div class="info">
+                                <p><strong></strong> ${shipmentData.status}</p>
+                            </div>
+                        `;
+                    } else {
+                        status.innerHTML = `<p>لم يتم العثور على الشحنة برقم ${shipmentNumber}</p>`;
+                    }
+                } catch (error) {
+                    console.error("خطأ في جلب بيانات الشحنة:", error);
+                    status.innerHTML = `<p>حدث خطأ أثناء تتبع الشحنة.</p>`;
+                }
+            } else {
+                status.innerHTML = `<p>يرجى إدخال رقم الشحنة.</p>`;
+            }
+        }
+    </script>
+</body>
+</html>
